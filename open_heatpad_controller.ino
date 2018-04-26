@@ -6,6 +6,8 @@
 #define THERMISTER_ROOM_TEMP 25				// Temp @ Norminal
 #define THERMISTER_COEF_B 3950				// Beta Coefficient of thermistor (usually 3000-4000)
 
+#define TEMP_KELVIN_DIFF 273.15				// Constant Difference between Kelvin to Celcius
+
 void setup()
 {
 	Serial.begin(115200);
@@ -61,6 +63,17 @@ double toCelcius(double resistance)
 	value /= THERMISTER_COEF_B;							// 1/B * ln(R/Ro)
 	value += 1.0 / (THERMISTER_ROOM_TEMP + 273.15);		// + (1/To)
 	value = 1.0 / value;								// Invert
-	value -= 273.15;									// Convert to C
+	value -= TEMP_KELVIN_DIFF;									// Convert to C
 	return value;
+}
+
+double getBetaCoef(double T1, double R1, double T2, double R2)
+{
+	// For NTC Thermistor. See "Steinhart–Hart" for more informations.
+	
+	// Convert T1 and T2 to Kelvin
+	T1 += TEMP_KELVIN_DIFF;
+	T2 += TEMP_KELVIN_DIFF;
+
+	return log(R1 / R2) / ((1 / T1) - (1 /T2));
 }
