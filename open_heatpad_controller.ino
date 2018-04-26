@@ -4,14 +4,25 @@
 
 #define THERMISTER_ROOM_RESISTANCE 10000    // Resistance @ Norminal  
 #define THERMISTER_ROOM_TEMP 25				// Temp @ Norminal
-#define THERMISTER_COEF_B 3950				// Beta Coefficient of thermistor (usually 3000-4000)
+#define THERMISTER_COEF_B 2988.64			// Beta Coefficient of thermistor (usually 3000-4000)
+											// 2988.64 == getBetaCoef(62, 3324.33, 5.5, 20274.66)
 
 #define TEMP_KELVIN_DIFF 273.15				// Constant Difference between Kelvin to Celcius
 
+#define CONTROLLER_PWM_MAX 255
+#define CONTROLLER_PWM_PIN 6
+#define CONTROLLER_INA_PIN 7
+#define CONTROLLER_INB_PIN 8
+
+
+
 void setup()
 {
-	Serial.begin(115200);
 	pinMode(LED_BUILTIN, OUTPUT);
+	Serial.begin(115200);
+	
+	initController();
+	// setController(100);
 }
 
 void loop()
@@ -63,7 +74,7 @@ double toCelcius(double resistance)
 	value /= THERMISTER_COEF_B;							// 1/B * ln(R/Ro)
 	value += 1.0 / (THERMISTER_ROOM_TEMP + 273.15);		// + (1/To)
 	value = 1.0 / value;								// Invert
-	value -= TEMP_KELVIN_DIFF;									// Convert to C
+	value -= TEMP_KELVIN_DIFF;							// Convert to C
 	return value;
 }
 
@@ -75,5 +86,34 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 	T1 += TEMP_KELVIN_DIFF;
 	T2 += TEMP_KELVIN_DIFF;
 
-	return log(R1 / R2) / ((1 / T1) - (1 /T2));
+	return log(R1/R2) / ((1/T1) - (1/T2));
+}
+
+void initController()
+{
+	Serial.println("Init Controller");
+	pinMode(CONTROLLER_PWM_PIN, OUTPUT);
+	pinMode(CONTROLLER_INA_PIN, OUTPUT);
+	pinMode(CONTROLLER_INB_PIN, OUTPUT);
+
+	digitalWrite(CONTROLLER_INA_PIN, HIGH);
+	digitalWrite(CONTROLLER_INB_PIN, LOW);
+	analogWrite(CONTROLLER_PWM_PIN, 0);
+}
+
+bool setController(double percentage)
+{
+	int pwm = (int)(CONTROLLER_PWM_MAX * (percentage/100));
+	Serial.print("setControlle: ");
+	Serial.print(percentage);
+	Serial.print("% -> PWM : ");
+	Serial.println(pwm);
+	if (pwm >= 0 && pwm <= CONTROLLER_PWM_MAX)
+	{
+		analogWrite(CONTROLLER_PWM_PIN, pwm);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
