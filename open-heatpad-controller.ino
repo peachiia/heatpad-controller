@@ -67,7 +67,7 @@ double getResistance(double Rref, int ADCval)
 
 double toCelcius(double resistance)
 {
-	// Steinhart–Hart eq. (NTC - Beta method)
+	// Steinhart-Hart eq. (NTC - Beta method)
 	double value = 0;
 	value = resistance / THERMISTER_ROOM_RESISTANCE;    // (R/Ro)
 	value = log(value);									// ln(R/Ro)
@@ -80,7 +80,7 @@ double toCelcius(double resistance)
 
 double getBetaCoef(double T1, double R1, double T2, double R2)
 {
-	// For NTC Thermistor. See "Steinhart–Hart" for more informations.
+	// For NTC Thermistor. See "Steinhart-Hart" for more informations.
 	
 	// Convert T1 and T2 to Kelvin
 	T1 += TEMP_KELVIN_DIFF;
@@ -117,3 +117,4 @@ bool setController(double percentage)
 		return false;
 	}
 }
+
