@@ -15,20 +15,21 @@
 #define THERMISTER_COEF_B 2988.64			// Beta Coefficient of thermistor (usually 3000-4000)
 											// 2988.64 == getBetaCoef(62, 3324.33, 5.5, 20274.66)
 
-double rawdata = 10000.0;
 double resistance = 10000.0;
 double celcius = 25.0;
+double smoothTemp = 25.0;
 
 #define CONTROLLER_PWM_MAX 255
 #define CONTROLLER_PWM_PIN 6
 #define CONTROLLER_INA_PIN 7
 #define CONTROLLER_INB_PIN 8
 
-#define THERMISTER_DENOISE_ORDER 10
+#define DENOISE_ORDER 1
+#define DENOISE_DIFF_LIMIT 0.02
+double getDenoisedData(double data);
 
 void blink_blocking(int pin, int duration);
 double getResistance(double Rref, int ADCval);
-double getDenoisedResistance(double resistance);
 double toCelcius(double resistance);
 double getBetaCoef(double T1, double R1, double T2, double R2);
 void printTemp();
@@ -63,9 +64,9 @@ void task_Temperature(int duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		rawdata = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
-		resistance = getDenoisedResistance(rawdata);
+		resistance = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
 		celcius = toCelcius(resistance);
+		smoothTemp = getDenoisedData(celcius);
 		printTemp();
 		STATIC_TIMER_UPDATE;
 	}
@@ -90,19 +91,24 @@ double getResistance(double Rref, int ADCval)
 	return Rref * ((ADC_MAX / ((double)ADCval)) - 1); 
 }
 
-double getDenoisedResistance(double resistance)
+double getDenoisedData(double data)
 {
-	static double buffer[THERMISTER_DENOISE_ORDER];
-	static int i,n;
-
-	buffer[n] = resistance;
-	n = (n + 1) % THERMISTER_DENOISE_ORDER;
-
-	resistance = 0;
-	for (i = 0; i < THERMISTER_DENOISE_ORDER; i++) {
-		resistance += buffer[i];
+	static double buffer = 25.0;
+	static double prev = 25.0;
+	
+	if((data - prev) > DENOISE_DIFF_LIMIT) {
+		prev += DENOISE_DIFF_LIMIT;
+		data = prev ;
 	}
-	return resistance / THERMISTER_DENOISE_ORDER;
+	else if ((prev - data) > DENOISE_DIFF_LIMIT) {
+		prev -= DENOISE_DIFF_LIMIT;
+		data = prev;
+	} 
+	else{
+		prev = data;
+	}
+	buffer = (data + (buffer * (DENOISE_ORDER - 1))) / DENOISE_ORDER;
+	return buffer;
 }
 
 double toCelcius(double resistance)
@@ -131,9 +137,9 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 
 void printTemp()
 {
-	Serial.print(toCelcius(rawdata));
-	Serial.print(" ");
 	Serial.print(celcius);
+	Serial.print(" ");
+	Serial.print(smoothTemp);
 	Serial.print(" ");
 	Serial.println(38);
 }
