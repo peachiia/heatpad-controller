@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #define THERMISTER_PIN A0
 #define THERMISTER_REF_RESISTER 9960.0
 #define ADC_MAX 1023
@@ -15,6 +17,12 @@
 #define CONTROLLER_INB_PIN 8
 
 
+void blink_blocking(int pin, int duration);
+double getResistance(double Rref, int ADCval);
+double toCelcius(double resistance);
+double getBetaCoef(double T1, double R1, double T2, double R2);
+void initController();
+bool setController(double percentage);
 
 void setup()
 {
@@ -104,7 +112,7 @@ void initController()
 bool setController(double percentage)
 {
 	int pwm = (int)(CONTROLLER_PWM_MAX * (percentage/100));
-	Serial.print("setControlle: ");
+	Serial.print("setController: ");
 	Serial.print(percentage);
 	Serial.print("% -> PWM : ");
 	Serial.println(pwm);
