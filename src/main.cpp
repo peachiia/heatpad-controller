@@ -15,6 +15,7 @@
 #define THERMISTER_COEF_B 2988.64			// Beta Coefficient of thermistor (usually 3000-4000)
 											// 2988.64 == getBetaCoef(62, 3324.33, 5.5, 20274.66)
 
+double rawdata = 10000.0;
 double resistance = 10000.0;
 double celcius = 25.0;
 
@@ -23,11 +24,15 @@ double celcius = 25.0;
 #define CONTROLLER_INA_PIN 7
 #define CONTROLLER_INB_PIN 8
 
+#define THERMISTER_DENOISE_ORDER 10
 
 void blink_blocking(int pin, int duration);
 double getResistance(double Rref, int ADCval);
+double getDenoisedResistance(double resistance);
 double toCelcius(double resistance);
 double getBetaCoef(double T1, double R1, double T2, double R2);
+void printTemp();
+
 void initController();
 bool setController(double percentage);
 
@@ -44,8 +49,7 @@ void setup()
 
 void loop()
 {
-	task_Temperature(500);
-	task_Temperature(500);
+	task_Temperature(10);
 /*
 	Serial.print(celcius);
 	Serial.print(" ");
@@ -59,12 +63,15 @@ void task_Temperature(int duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		resistance = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
+		rawdata = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
+		resistance = getDenoisedResistance(rawdata);
 		celcius = toCelcius(resistance);
-		Serial.println("Task");
+		printTemp();
 		STATIC_TIMER_UPDATE;
 	}
 }
+
+
 
 void blink_blocking(int pin, int duration)
 {
@@ -81,6 +88,21 @@ double getResistance(double Rref, int ADCval)
 
 	// For Reverse Measuring Circuit
 	return Rref * ((ADC_MAX / ((double)ADCval)) - 1); 
+}
+
+double getDenoisedResistance(double resistance)
+{
+	static double buffer[THERMISTER_DENOISE_ORDER];
+	static int i,n;
+
+	buffer[n] = resistance;
+	n = (n + 1) % THERMISTER_DENOISE_ORDER;
+
+	resistance = 0;
+	for (i = 0; i < THERMISTER_DENOISE_ORDER; i++) {
+		resistance += buffer[i];
+	}
+	return resistance / THERMISTER_DENOISE_ORDER;
 }
 
 double toCelcius(double resistance)
@@ -105,6 +127,15 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 	T2 += TEMP_KELVIN_DIFF;
 
 	return log(R1/R2) / ((1/T1) - (1/T2));
+}
+
+void printTemp()
+{
+	Serial.print(toCelcius(rawdata));
+	Serial.print(" ");
+	Serial.print(celcius);
+	Serial.print(" ");
+	Serial.println(38);
 }
 
 void initController()
