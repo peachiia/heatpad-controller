@@ -21,5 +21,8 @@
     <ClInclude Include="__vm\.open_heatpad_controller.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.open-heatpad-controller.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

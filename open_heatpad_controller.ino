@@ -22,7 +22,7 @@ void setup()
 	Serial.begin(115200);
 	
 	initController();
-	// setController(100);
+	setController(100);
 }
 
 void loop()
