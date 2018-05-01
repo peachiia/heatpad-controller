@@ -52,8 +52,8 @@ void setup()
 void loop()
 {
 	task_Temperature(10);
-	task_PID(100);
 	task_Plot(10);
+	task_PID(50);
 /*
 	Serial.print(celcius);
 	Serial.print(" ");
@@ -171,14 +171,14 @@ bool setController(double percentage)
 	}
 }
 
-double kP = 1;
-double kI = 0;
-double kD = 0;
+double kP = 500; // 200
+double kI = 0; // 2
+double kD = 0; //5
 double valP, valI, valD, valPID;
 
 double currentTemp = 25.0;
 double previousTemp = 25.0;
-double setpointTemp = 38.0;
+double setpointTemp = 40.0;
 double errorTemp = 0;
 
 double deltaTime = 0;
