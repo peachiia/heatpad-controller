@@ -200,15 +200,12 @@ void task_PID(long duration)
 		valPID = valP + valI + valD;
 
 		if (valPID < 0){
-			setController(0);
+			valPID = 0;
 		}
 		else if (valPID > 100){
-			setController(100);
+			valPID = 100;
 		}
-		else{
-			setController(valPID);
-		}
-		
+		setController(valPID);
 
 		STATIC_TIMER_UPDATE;
 	}
