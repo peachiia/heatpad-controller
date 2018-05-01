@@ -37,7 +37,9 @@ void printTemp();
 void initController();
 bool setController(double percentage);
 
-void task_Temperature(int duration);
+void task_Temperature(long duration);
+void task_PID(long duration);
+void task_Plot(long duration);
 
 void setup()
 {
@@ -45,12 +47,13 @@ void setup()
 	Serial.begin(115200);
 	
 	initController();
-	setController(100);
 }
 
 void loop()
 {
 	task_Temperature(10);
+	task_PID(100);
+	task_Plot(10);
 /*
 	Serial.print(celcius);
 	Serial.print(" ");
@@ -60,14 +63,14 @@ void loop()
 	*/
 }
 
-void task_Temperature(int duration)
+void task_Temperature(long duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
 		resistance = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
 		noisyTemp = toCelcius(resistance);
 		denoisedTemp = getDenoisedData(noisyTemp);
-		printTemp();
+		
 		STATIC_TIMER_UPDATE;
 	}
 }
@@ -135,15 +138,6 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 	return log(R1/R2) / ((1/T1) - (1/T2));
 }
 
-void printTemp()
-{
-	Serial.print(noisyTemp);
-	Serial.print(" ");
-	Serial.print(denoisedTemp);
-	Serial.print(" ");
-	Serial.println(38);
-}
-
 void initController()
 {
 	#ifdef VERBOSE
@@ -177,3 +171,62 @@ bool setController(double percentage)
 	}
 }
 
+double kP = 1;
+double kI = 0;
+double kD = 0;
+double valP, valI, valD, valPID;
+
+double currentTemp = 25.0;
+double previousTemp = 25.0;
+double setpointTemp = 38.0;
+double errorTemp = 0;
+
+double deltaTime = 0;
+double controlPWM = 0;
+
+void task_PID(long duration)
+{
+	STATIC_TIMER_INIT;
+	if (STATIC_TIMER_CHECK) {
+		double previousTime = millis();
+		currentTemp = denoisedTemp;
+		errorTemp = setpointTemp - currentTemp;
+		deltaTime = (millis() - previousTime) / 1000;
+		previousTime = millis();
+
+		valP = errorTemp * kP;
+		valI = valI + ((errorTemp * kI) * deltaTime);
+		valD = (previousTemp - currentTemp) * kD;
+		valPID = valP + valI + valD;
+
+		if (valPID < 0){
+			setController(0);
+		}
+		else if (valPID > 100){
+			setController(100);
+		}
+		else{
+			setController(valPID);
+		}
+		
+
+		STATIC_TIMER_UPDATE;
+	}
+}
+
+void task_Plot(long duration)
+{
+	STATIC_TIMER_INIT;
+	if (STATIC_TIMER_CHECK) {
+		Serial.print(noisyTemp);
+		Serial.print(" ");
+		Serial.print(denoisedTemp);
+		Serial.print(" ");
+		Serial.print(38);
+		Serial.print(" // ");
+		Serial.print(valPID);
+
+		Serial.println();
+		STATIC_TIMER_UPDATE;
+	}
+}
