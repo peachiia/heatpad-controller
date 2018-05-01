@@ -52,8 +52,8 @@ void setup()
 void loop()
 {
 	task_Temperature(10);
-	task_Plot(10);
 	task_PID(50);
+	task_Plot(20);
 /*
 	Serial.print(celcius);
 	Serial.print(" ");
@@ -215,15 +215,23 @@ void task_Plot(long duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		Serial.print(noisyTemp);
-		Serial.print(" ");
+		// Serial.print(noisyTemp);
+		// Serial.print(" ");
 		Serial.print(denoisedTemp);
 		Serial.print(" ");
-		Serial.print(38);
-		Serial.print(" // ");
-		Serial.print(valPID);
+		Serial.print(setpointTemp);
+		// Serial.print(" // ");
+		// Serial.print(valPID);
 
 		Serial.println();
 		STATIC_TIMER_UPDATE;
+	}
+
+	if (abs(currentTemp-setpointTemp) < 0.5)
+	{
+		digitalWrite(LED_BUILTIN, HIGH);
+	}
+	else{
+		digitalWrite(LED_BUILTIN, LOW);
 	}
 }
