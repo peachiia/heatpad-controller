@@ -58,6 +58,7 @@
 
 void task_Temperature(long duration);
 void task_PID(long duration);
+void task_Controller(long duration);
 void task_Plot(long duration);
 
 void setup()
@@ -72,6 +73,7 @@ void loop()
 {
 	task_Temperature(10);
 	task_PID(50);
+	task_Controller(50);
 	task_Plot(20);
 }
 
@@ -104,13 +106,24 @@ void task_PID(long duration)
 		valD = (previousTemp - currentTemp) * kD;
 		valPID = valP + valI + valD;
 
-		if (valPID < 0){
-			valPID = 0;
+		STATIC_TIMER_UPDATE;
+	}
+}
+
+
+void task_Controller(long duration)
+{
+	static double percentage;
+	STATIC_TIMER_INIT;
+	if (STATIC_TIMER_CHECK) {
+		percentage = valPID;
+		if (percentage < 0){
+			percentage = 0;
 		}
-		else if (valPID > 100){
-			valPID = 100;
+		else if (percentage > 100){
+			percentage = 100;
 		}
-		setController(valPID);
+		setController(percentage);
 
 		STATIC_TIMER_UPDATE;
 	}
