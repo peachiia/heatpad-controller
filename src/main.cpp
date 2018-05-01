@@ -96,9 +96,9 @@ double getResistance(double Rref, int ADCval)
 
 double getDenoisedData(double data)
 {
-	static double buffer = 25.0;
-	static double prev = 25.0;
-	
+	static double buffer = data;
+	static double prev = data;
+
 	if((data - prev) > DENOISE_DIFF_LIMIT) {
 		prev += DENOISE_DIFF_LIMIT;
 		data = prev ;
