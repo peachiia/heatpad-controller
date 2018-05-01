@@ -1,9 +1,9 @@
 #include <Arduino.h>
 //#define VERBOSE
 
-#define STATIC_TIMER_UPDATE timer = millis() + duration
-#define STATIC_TIMER_INIT static unsigned long STATIC_TIMER_UPDATE
-#define STATIC_TIMER_CHECK (millis() >= timer)
+#define STATIC_TIMER_UPDATE timer = millis() + duration					// Reschedule for next calling
+#define STATIC_TIMER_INIT static unsigned long STATIC_TIMER_UPDATE		// Schedule Variable Declaration
+#define STATIC_TIMER_CHECK (millis() >= timer)							// Schedule Checking
 
 #define THERMISTER_PIN A0
 #define THERMISTER_REF_RESISTER 9960.0
@@ -16,8 +16,8 @@
 											// 2988.64 == getBetaCoef(62, 3324.33, 5.5, 20274.66)
 
 double resistance = 10000.0;
-double celcius = 25.0;
-double smoothTemp = 25.0;
+double noisyTemp = 25.0;
+double denoisedTemp = 25.0;
 
 #define CONTROLLER_PWM_MAX 255
 #define CONTROLLER_PWM_PIN 6
@@ -65,8 +65,8 @@ void task_Temperature(int duration)
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
 		resistance = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
-		celcius = toCelcius(resistance);
-		smoothTemp = getDenoisedData(celcius);
+		noisyTemp = toCelcius(resistance);
+		denoisedTemp = getDenoisedData(noisyTemp);
 		printTemp();
 		STATIC_TIMER_UPDATE;
 	}
@@ -137,9 +137,9 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 
 void printTemp()
 {
-	Serial.print(celcius);
+	Serial.print(noisyTemp);
 	Serial.print(" ");
-	Serial.print(smoothTemp);
+	Serial.print(denoisedTemp);
 	Serial.print(" ");
 	Serial.println(38);
 }
