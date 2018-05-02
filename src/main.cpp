@@ -60,6 +60,7 @@ void task_Temperature(long duration);
 void task_PID(long duration);
 void task_Controller(long duration);
 void task_Plot(long duration);
+void task_Terminal(long duration);
 
 void setup()
 {
@@ -67,14 +68,17 @@ void setup()
 	Serial.begin(115200);
 	
 	initController();
+	Serial.print(">> ");
 }
 
 void loop()
 {
-	task_Temperature(10);
-	task_PID(50);
-	task_Controller(50);
-	task_Plot(20);
+	//task_Temperature(10);
+	//task_PID(50);
+	//task_Controller(50);
+	//task_Plot(20);
+
+	task_Terminal(50);
 }
 
 
@@ -247,3 +251,54 @@ bool setController(double percentage)
 	}
 }
 
+#define COMMAND_MAX_LENGTH 50
+char cmdBuffer[COMMAND_MAX_LENGTH];
+int cmdLength = 0;
+char previousLength = 0;
+
+void task_Terminal(long duration)
+{
+	STATIC_TIMER_INIT;
+	if (STATIC_TIMER_CHECK) {
+		int len = Serial.available();
+		int i;
+		if (len)
+		{
+			Serial.readBytes(&cmdBuffer[cmdLength], len);
+			cmdLength += len;
+
+			for (i = previousLength; i < cmdLength; i++)
+			{
+				if (cmdBuffer[i] == '\n' || cmdBuffer[i] == '\r') {
+					cmdLength = 0;
+					Serial.println();
+					Serial.print(">> ");
+				}
+				else if (cmdBuffer[i] == '.') {
+					Serial.print(" = ");
+					Serial.println((cmdLength));
+				}
+				else if (cmdBuffer[i] == '\b' || cmdBuffer[i] == 127) {  // backspace for windows, putty
+					if (cmdLength >=2) {
+						cmdLength -= 2;
+						Serial.print(cmdBuffer[i]);
+						/*
+						Serial.println();
+						Serial.print((int)cmdLength);
+						Serial.print(" >> ");
+						Serial.print(cmdBuffer);		
+						*/
+					}
+					else {
+						cmdLength = 0;
+					}
+				}
+				else{
+					Serial.print(cmdBuffer[i]);
+				}
+			}
+			previousLength = cmdLength;
+		}
+		STATIC_TIMER_UPDATE;
+	}
+}
