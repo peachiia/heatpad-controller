@@ -254,46 +254,39 @@ char cmdBuffer[COMMAND_MAX_LENGTH];
 int cmdLength = 0;
 char previousLength = 0;
 
+char  charBuffer;
+
 void task_Terminal(long duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		int len = Serial.available();
-		int i;
-		if (len)
+		while (Serial.available() > 0) // TODO: Watchdog Timer Required.
 		{
-			Serial.readBytes(&cmdBuffer[cmdLength], len);
-			cmdLength += len;
+			charBuffer = (char)Serial.read();
 
-			for (i = previousLength; i < cmdLength; i++)
-			{
-				if (cmdBuffer[i] == '\n' || cmdBuffer[i] == '\r') {
+			if (charBuffer == '\n') {
+				if (cmdLength > 0) {
+					// Exec();
 					cmdLength = 0;
-					Serial.println();
-					Serial.print(">> ");
+				} 
+				Serial.println();
+				Serial.print(">> ");
+			}
+			else if (charBuffer == '\b' || charBuffer == 127) {  // backspace for windows, putty
+				if (cmdLength >= 1) {
+					cmdLength--;
+					Serial.print(charBuffer);
 				}
-				else if (cmdBuffer[i] == '.') {
-					Serial.print(" = ");
-					Serial.println((cmdLength));
+				else {
+					cmdLength = 0;
 				}
-				else if (cmdBuffer[i] == '\b' || cmdBuffer[i] == 127) {  // backspace for windows, putty
-					if (cmdLength >=2) {
-						cmdLength -= 2;
-						Serial.print(cmdBuffer[i]);
-						/*
-						Serial.println();
-						Serial.print((int)cmdLength);
-						Serial.print(" >> ");
-						Serial.print(cmdBuffer);		
-						*/
-					}
-					else {
-						cmdLength = 0;
-					}
-				}
-				else{
-					Serial.print(cmdBuffer[i]);
-				}
+			}
+			else if (charBuffer == '\r') { // ignore
+
+			}
+			else {
+				Serial.print(charBuffer);
+				cmdBuffer[cmdLength++] = charBuffer;
 			}
 			previousLength = cmdLength;
 		}
