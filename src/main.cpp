@@ -250,11 +250,9 @@ bool setController(double percentage)
 }
 
 #define COMMAND_MAX_LENGTH 50
-char cmdBuffer[COMMAND_MAX_LENGTH];
-int cmdLength = 0;
-char previousLength = 0;
-
-char  charBuffer;
+char bufferString[COMMAND_MAX_LENGTH];
+int bufferLength = 0;
+char bufferChar;
 
 void task_Terminal(long duration)
 {
@@ -262,33 +260,32 @@ void task_Terminal(long duration)
 	if (STATIC_TIMER_CHECK) {
 		while (Serial.available() > 0) // TODO: Watchdog Timer Required.
 		{
-			charBuffer = (char)Serial.read();
+			bufferChar = (char)Serial.read();
 
-			if (charBuffer == '\n') {
-				if (cmdLength > 0) {
+			if (bufferChar == '\n') {
+				if (bufferLength > 0) {
 					// Exec();
-					cmdLength = 0;
+					bufferLength = 0;
 				} 
 				Serial.println();
 				Serial.print(">> ");
 			}
-			else if (charBuffer == '\b' || charBuffer == 127) {  // backspace for windows, putty
-				if (cmdLength >= 1) {
-					cmdLength--;
-					Serial.print(charBuffer);
+			else if (bufferChar == '\b' || bufferChar == 127) {  // backspace for windows, putty
+				if (bufferLength >= 1) {
+					bufferLength--;
+					Serial.print(bufferChar);
 				}
 				else {
-					cmdLength = 0;
+					bufferLength = 0;
 				}
 			}
-			else if (charBuffer == '\r') { // ignore
+			else if (bufferChar== '\r') { // ignore
 
 			}
 			else {
-				Serial.print(charBuffer);
-				cmdBuffer[cmdLength++] = charBuffer;
+				Serial.print(bufferChar);
+				bufferString[bufferLength++] = bufferChar;
 			}
-			previousLength = cmdLength;
 		}
 		STATIC_TIMER_UPDATE;
 	}
