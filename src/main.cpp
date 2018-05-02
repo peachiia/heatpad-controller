@@ -121,10 +121,10 @@ void task_Controller(long duration)
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
 		percentage = valPID;
-		if (percentage < 0){
+		if (percentage < 0) {
 			percentage = 0;
 		}
-		else if (percentage > 100){
+		else if (percentage > 100) {
 			percentage = 100;
 		}
 		setController(percentage);
@@ -150,11 +150,10 @@ void task_Plot(long duration)
 		STATIC_TIMER_UPDATE;
 	}
 
-	if (abs(currentTemp-setpointTemp) < 0.5)
-	{
+	if (abs(currentTemp-setpointTemp) < 0.5) {
 		digitalWrite(LED_BUILTIN, HIGH);
 	}
-	else{
+	else {
 		digitalWrite(LED_BUILTIN, LOW);
 	}
 }
@@ -183,7 +182,7 @@ double getDenoisedData(double data)
 		prev -= DENOISE_DIFF_LIMIT;
 		data = prev;
 	} 
-	else{
+	else {
 		prev = data;
 	}
 	buffer = (data + (buffer * (DENOISE_ORDER - 1))) / DENOISE_ORDER;
@@ -241,8 +240,7 @@ bool setController(double percentage)
 		Serial.print("% -> PWM : ");
 		Serial.println(pwm);
 	#endif
-	if (pwm >= 0 && pwm <= CONTROLLER_PWM_MAX)
-	{
+	if (pwm >= 0 && pwm <= CONTROLLER_PWM_MAX) {
 		analogWrite(CONTROLLER_PWM_PIN, pwm);
 		return true;
 	}
