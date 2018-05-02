@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <stdio.h>
 //#define VERBOSE
 
 #pragma region TASK_TIMER
@@ -56,11 +57,28 @@
 	double controlPWM = 0;
 #pragma endregion
 
+#pragma region MESSAGE
+	#define MESSAGE_HELP 	F("\n  Open Heat-Pad Controller Terminal\n" \
+								"    help        : show help message\n" \
+								"    info        : show info of system\n" \
+								"    status      : show current status\n" \
+								"    run         : start control loop\n" \
+								"    stop        : stop control loop\n" \
+								"    get         : get value of ALL KEY\n" \
+								"    get <k>     : get value of specific key\n" \
+								"    set <k> <v> : set value to specific key\n" \
+								"    hardreset   : restore to DEFAULT parameter\n" \
+							)
+
+#pragma endregion
+
 void task_Temperature(long duration);
 void task_PID(long duration);
 void task_Controller(long duration);
 void task_Plot(long duration);
 void task_Terminal(long duration);
+void task_Exec();
+bool isMatch(char *p,  char *keyword);
 
 void setup()
 {
@@ -68,7 +86,6 @@ void setup()
 	Serial.begin(115200);
 	
 	initController();
-	Serial.print(">> ");
 }
 
 void loop()
@@ -79,6 +96,7 @@ void loop()
 	//task_Plot(20);
 
 	task_Terminal(50);
+	task_Exec();
 }
 
 
@@ -254,39 +272,98 @@ char bufferString[COMMAND_MAX_LENGTH];
 int bufferLength = 0;
 char bufferChar;
 
+char command[COMMAND_MAX_LENGTH];
+int commandLength = 0;
+bool flagExecRequest = false;
+bool flagTerminalResume = true;
 void task_Terminal(long duration)
 {
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
+		if (flagTerminalResume) {
+			Serial.print(">> ");
+			flagTerminalResume = false;
+		}					
 		while (Serial.available() > 0) // TODO: Watchdog Timer Required.
 		{
-			bufferChar = (char)Serial.read();
-
-			if (bufferChar == '\n') {
-				if (bufferLength > 0) {
-					// Exec();
-					bufferLength = 0;
-				} 
-				Serial.println();
-				Serial.print(">> ");
-			}
-			else if (bufferChar == '\b' || bufferChar == 127) {  // backspace for windows, putty
-				if (bufferLength >= 1) {
-					bufferLength--;
-					Serial.print(bufferChar);
+			if (!flagExecRequest) {
+				bufferChar = (char)Serial.read();
+				if (bufferChar == '\n' || bufferChar== '\r') {
+					if (bufferLength > 0) {
+						bufferString[bufferLength] = '\0';
+						memcpy(command, bufferString, bufferLength + 1);
+						commandLength = bufferLength;
+						bufferLength = 0;
+						flagExecRequest = true;
+						Serial.println();
+						break;
+					} 
+				}
+				else if (bufferChar == '\b' || bufferChar == 127) {  // backspace for windows, putty
+					if (bufferLength >= 1) {
+						bufferLength--;
+						Serial.print(bufferChar);
+					}
+					else {
+						bufferLength = 0;
+					}
+				}
+				else if (bufferChar == ' ') {
+					if ((bufferLength > 0) && (bufferString[bufferLength-1] != ' ')) {
+						Serial.print(bufferChar);
+						bufferString[bufferLength++] = bufferChar;
+					}
 				}
 				else {
-					bufferLength = 0;
+					Serial.print(bufferChar);
+					bufferString[bufferLength++] = bufferChar;
 				}
-			}
-			else if (bufferChar== '\r') { // ignore
-
-			}
-			else {
-				Serial.print(bufferChar);
-				bufferString[bufferLength++] = bufferChar;
 			}
 		}
 		STATIC_TIMER_UPDATE;
 	}
+}
+
+void task_Exec()
+{
+	if (flagExecRequest) {
+		#ifdef VERBOSE
+			Serial.print("EXEC: ");
+			Serial.println(command);
+		#endif
+
+		if (isMatch(command, "help")) {
+			Serial.println(MESSAGE_HELP);
+		}
+		else if (isMatch(command, "info")) {
+			Serial.println(F("Info"));
+		}
+		else if (isMatch(command, "status")) {
+			Serial.println(F("Status"));
+		}
+		else if (isMatch(command, "run")) {
+			Serial.println(F("Run"));
+		}
+		else if (isMatch(command, "stop")) {
+			Serial.println(F("Stop"));
+		}
+		else {
+			Serial.println("Unknown Command!. Try 'help'.");
+		}
+		Serial.println();
+		flagExecRequest = false;
+		flagTerminalResume = true;
+	}
+}
+
+bool isMatch(char *p, char *keyword)
+{
+	int i, len = strlen(keyword);
+	for (i = 0; i < len; i++)
+	{
+		if (tolower(p[i]) != tolower(keyword[i])) {
+			break;
+		}
+	}
+	return (i == len);
 }
