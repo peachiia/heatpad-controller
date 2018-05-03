@@ -553,19 +553,21 @@ void command_show()
 	Serial.println(profile.isPlottingTaskEnabled ? F("true"):F("false"));
 
 	Serial.println();
+
+	Serial.print(F("- ADC_MAX : ")); // = 1023;
+	Serial.println(profile.ADC_MAX);
 	Serial.print(F("- THERMISTER_PIN : ")); //  = 0
 	Serial.println(profile.THERMISTER_PIN);
 	Serial.print(F("- THERMISTER_REF_RESISTER : ")); // = 9960.0;
 	Serial.println(profile.THERMISTER_REF_RESISTER);
-	Serial.print(F("- ADC_MAX : ")); // = 1023;
-	Serial.println(profile.ADC_MAX);
-	
 	Serial.print(F("- THERMISTER_ROOM_RESISTANCE : ")); // = 10000;    
 	Serial.println(profile.THERMISTER_ROOM_RESISTANCE);
 	Serial.print(F("- THERMISTER_ROOM_TEMP : ")); // = 25;				
 	Serial.println(profile.THERMISTER_ROOM_TEMP);
 	Serial.print(F("- THERMISTER_COEF_B : ")); // = 2988.64;			
 	Serial.println(profile.THERMISTER_COEF_B);
+	Serial.print(F("- DENOISE_ORDER: ")); // = 1;
+	Serial.println(profile.DENOISE_ORDER);
 	Serial.print(F("- DENOISE_DIFF_LIMIT : ")); // = 0.02;
 	Serial.println(profile.DENOISE_DIFF_LIMIT);
 	
