@@ -451,9 +451,9 @@ void command_help()
 						"    info        : show info of system\n" \
 						"    run         : start control loop\n" \
 						"    stop        : stop control loop\n" \
-						"    showprofile : show current profile\n" \
-						"    loadprofile : load profile from Storage\n" \
-						"    saveprofile : save profile to Storage\n" \
+						"    show        : show current profile\n" \
+						"    load        : load profile from Storage\n" \
+						"    save        : save profile to Storage\n" \
 						"    set <k> <v> : set value to specific profile key\n" \
 						"    default     : restore profile on RAM to DEFAULT\n" \
 					));
