@@ -39,7 +39,7 @@
 	#define CONTROLLER_INA_PIN 7
 	#define CONTROLLER_INB_PIN 8
 
-	bool isControllerTaskEnabled = false;
+	bool isControlTaskEnabled = false;
 
 	void initController();
 	bool setController(double percentage);
@@ -66,6 +66,10 @@ void task_Plot(long duration);
 void task_Terminal(long duration);
 void task_Exec();
 
+void task_run();
+void task_stop();
+bool task_isRunning();
+
 bool isMatch(char *p,  char *keyword);
 void command_help();
 void command_info();
@@ -77,18 +81,26 @@ void setup()
 	pinMode(LED_BUILTIN, OUTPUT);
 	Serial.begin(115200);
 	
-	initController();
+	task_run();
 }
 
 void loop()
 {
-	task_Temperature(10);
-	task_PID(50);
-	task_Controller(50);
-	//task_Plot(20);
-
+	if (task_isRunning())
+	{
+		task_Temperature(10);
+		task_PID(50);
+		task_Controller(50);
+		//task_Plot(20);
+	}
 	task_Terminal(50);
 	task_Exec();
+}
+
+
+void init_Temperature()
+{
+
 }
 
 
@@ -102,6 +114,12 @@ void task_Temperature(long duration)
 		currentTemp = denoisedTemp;
 		STATIC_TIMER_UPDATE;
 	}
+}
+
+
+void init_PID()
+{
+
 }
 
 
@@ -124,24 +142,45 @@ void task_PID(long duration)
 }
 
 
+void init_Controller()
+{
+	#ifdef VERBOSE
+		Serial.println("Init Controller");
+	#endif
+	pinMode(CONTROLLER_PWM_PIN, OUTPUT);
+	pinMode(CONTROLLER_INA_PIN, OUTPUT);
+	pinMode(CONTROLLER_INB_PIN, OUTPUT);
+
+	digitalWrite(CONTROLLER_INA_PIN, HIGH);
+	digitalWrite(CONTROLLER_INB_PIN, LOW);
+	analogWrite(CONTROLLER_PWM_PIN, 0);
+
+	setController(0);
+}
+
+
 void task_Controller(long duration)
 {
 	static double percentage;
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		if (isControllerTaskEnabled) {
-			percentage = valPID;
-			if (percentage < 0) {
-				percentage = 0;
-			}
-			else if (percentage > 100) {
-				percentage = 100;
-			}
-			setController(percentage);
+		percentage = valPID;
+		if (percentage < 0) {
+			percentage = 0;
 		}
+		else if (percentage > 100) {
+			percentage = 100;
+		}
+		setController(percentage);
 
 		STATIC_TIMER_UPDATE;
 	}
+}
+
+
+void init_Plot()
+{
+
 }
 
 
@@ -227,24 +266,6 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 }
 
 
-void initController()
-{
-	#ifdef VERBOSE
-		Serial.println("Init Controller");
-	#endif
-	pinMode(CONTROLLER_PWM_PIN, OUTPUT);
-	pinMode(CONTROLLER_INA_PIN, OUTPUT);
-	pinMode(CONTROLLER_INB_PIN, OUTPUT);
-
-	digitalWrite(CONTROLLER_INA_PIN, HIGH);
-	digitalWrite(CONTROLLER_INB_PIN, LOW);
-	analogWrite(CONTROLLER_PWM_PIN, 0);
-
-	isControllerTaskEnabled = false;
-	setController(0);
-}
-
-
 bool setController(double percentage)
 {
 	int pwm = (int)(CONTROLLER_PWM_MAX * (percentage/100));
@@ -272,6 +293,14 @@ char command[COMMAND_MAX_LENGTH];
 int commandLength = 0;
 bool flagExecRequest = false;
 bool flagTerminalResume = true;
+
+
+void init_Terminal()
+{
+
+}
+
+
 void task_Terminal(long duration)
 {
 	STATIC_TIMER_INIT;
@@ -379,26 +408,54 @@ void command_info()
 {
 	Serial.print(F("\n  System Infomation\n"));
 	Serial.print(F("   - Status        : "));
-	Serial.println(isControllerTaskEnabled? "Running":"STOP");
+	Serial.println(task_isRunning()? "Running":"STOP");
 
 	Serial.print(F("   - Setpoint Temp.: "));
 	Serial.println(setpointTemp);
 
-	Serial.print(F("   - Current Temp. : "));
-	Serial.println(currentTemp);
+	if(task_isRunning()) {
+		Serial.print(F("   - Current Temp. : "));
+		Serial.println(currentTemp);
+	}
 }
 
 void command_run()
 {
-	Serial.print(F("Task starting...\n"));
-	isControllerTaskEnabled = true;
+	Serial.print(F("Task starting... "));
+	if (!task_isRunning()) {
+		task_run();
+		Serial.print(F("DONE\n"));
+	}
+	else{
+		Serial.print(F("FAIL: already running\n"));
+	}
 	command_info();
 }
 
 void command_stop()
 {
-	Serial.print(F("Task stopping...\n"));
-	isControllerTaskEnabled = false;
-	setController(0);
+	Serial.print(F("Task stopping... "));
+	task_stop();
+	Serial.print(F("DONE\n"));
 	command_info();
+}
+void task_run()
+{
+	isControlTaskEnabled = true;
+	init_Temperature();
+	init_PID();
+	init_Controller();
+	init_Plot();
+	init_Terminal();
+}
+
+void task_stop()
+{
+	isControlTaskEnabled = false;
+	setController(0);
+}
+
+bool task_isRunning()
+{
+	return isControlTaskEnabled;
 }
