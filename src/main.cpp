@@ -106,6 +106,9 @@ void command_load();
 void command_save();
 void command_set();
 
+bool profile_save();
+bool profile_load();
+
 void setup()
 {
 	pinMode(LED_BUILTIN, OUTPUT);
@@ -587,20 +590,42 @@ void command_show()
 void command_load()
 {
 	Serial.print(F("Loading Profile from Storage... "));
-	EEPROM.get(0, profile);
-	Serial.print(F("DONE\n"));
+	if (profile_load()) {
+		Serial.print(F("DONE\n"));
+		command_show();
+	}
+	else {
+		Serial.print(F("ERROR!!\n"));
+	}
 }
 
 
 void command_save()
 {
 	Serial.print(F("Saving Profile to storage... "));
-	EEPROM.put(0, profile);
-	Serial.print(F("DONE\n"));
+	if (profile_save()) {
+		Serial.print(F("DONE\n"));
+		command_show();
+	}
+	else {
+		Serial.print(F("ERROR!!\n"));
+	}
 }
 
 
 void command_set()
 {
 
+}
+
+bool profile_load()
+{
+	EEPROM.get(0, profile);
+	return true;
+}
+
+bool profile_save()
+{
+	EEPROM.put(0, profile);
+	return true;
 }
