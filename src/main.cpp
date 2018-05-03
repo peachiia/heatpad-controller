@@ -22,6 +22,7 @@
 	double resistance = 10000.0;
 	double noisyTemp = 25.0;
 	double denoisedTemp = 25.0;
+	double currentTemp = 25.0;
 
 	#define DENOISE_ORDER 1
 	#define DENOISE_DIFF_LIMIT 0.02
@@ -48,7 +49,6 @@
 	double kD = 0; //5
 	double valP, valI, valD, valPID;
 
-	double currentTemp = 25.0;
 	double previousTemp = 25.0;
 	double setpointTemp = 40.0;
 	double errorTemp = 0;
@@ -66,6 +66,7 @@ void task_Exec();
 
 bool isMatch(char *p,  char *keyword);
 void print_help();
+void print_info();
 
 void setup()
 {
@@ -77,7 +78,7 @@ void setup()
 
 void loop()
 {
-	//task_Temperature(10);
+	task_Temperature(10);
 	//task_PID(50);
 	//task_Controller(50);
 	//task_Plot(20);
@@ -94,7 +95,7 @@ void task_Temperature(long duration)
 		resistance = getResistance(THERMISTER_REF_RESISTER, analogRead(THERMISTER_PIN));
 		noisyTemp = toCelcius(resistance);
 		denoisedTemp = getDenoisedData(noisyTemp);
-		
+		currentTemp = denoisedTemp;
 		STATIC_TIMER_UPDATE;
 	}
 }
@@ -105,7 +106,6 @@ void task_PID(long duration)
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
 		double previousTime = millis();
-		currentTemp = denoisedTemp;
 		errorTemp = setpointTemp - currentTemp;
 		deltaTime = (millis() - previousTime) / 1000;
 		previousTime = millis();
@@ -323,10 +323,7 @@ void task_Exec()
 			print_help();
 		}
 		else if (isMatch(command, "info")) {
-			Serial.println(F("Info"));
-		}
-		else if (isMatch(command, "status")) {
-			Serial.println(F("Status"));
+			print_info();
 		}
 		else if (isMatch(command, "run")) {
 			Serial.println(F("Run"));
@@ -357,10 +354,9 @@ bool isMatch(char *p, char *keyword)
 
 void print_help()
 {
-	Serial.print( F( "\n  Open Heat-Pad Controller Terminal\n" \
+	Serial.print( F(  "\n  Open Heat-Pad Controller Terminal\n" \
 						"    help        : show help message\n" \
 						"    info        : show info of system\n" \
-						"    status      : show current status\n" \
 						"    run         : start control loop\n" \
 						"    stop        : stop control loop\n" \
 						"    get         : get value of ALL KEY\n" \
@@ -368,4 +364,17 @@ void print_help()
 						"    set <k> <v> : set value to specific key\n" \
 						"    hardreset   : restore to DEFAULT parameter\n" \
 					));
+}
+
+void print_info()
+{
+	Serial.print(F("\n  System Infomation\n"));
+	Serial.print(F("   - Status        : "));
+	Serial.println();
+
+	Serial.print(F("   - Setpoint Temp.: "));
+	Serial.println(setpointTemp);
+
+	Serial.print(F("   - Current Temp. : "));
+	Serial.println(currentTemp);
 }
