@@ -65,8 +65,8 @@ void task_Terminal(long duration);
 void task_Exec();
 
 bool isMatch(char *p,  char *keyword);
-void print_help();
-void print_info();
+void command_help();
+void command_info();
 
 void setup()
 {
@@ -320,10 +320,10 @@ void task_Exec()
 		#endif
 
 		if (isMatch(command, "help")) {
-			print_help();
+			command_help();
 		}
 		else if (isMatch(command, "info")) {
-			print_info();
+			command_info();
 		}
 		else if (isMatch(command, "run")) {
 			Serial.println(F("Run"));
@@ -352,7 +352,7 @@ bool isMatch(char *p, char *keyword)
 	return (i == len);
 }
 
-void print_help()
+void command_help()
 {
 	Serial.print( F(  "\n  Open Heat-Pad Controller Terminal\n" \
 						"    help        : show help message\n" \
@@ -366,7 +366,7 @@ void print_help()
 					));
 }
 
-void print_info()
+void command_info()
 {
 	Serial.print(F("\n  System Infomation\n"));
 	Serial.print(F("   - Status        : "));
