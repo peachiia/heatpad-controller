@@ -27,6 +27,9 @@ struct profile_storage
 	double kD = 0;
 
 	double setpointTemp = 40.0;
+
+	bool isAutorunEnabled = false;
+	bool isPlottingTaskEnabled = false;
 } profile;
 
 #pragma region TASK
@@ -108,7 +111,9 @@ void setup()
 	pinMode(LED_BUILTIN, OUTPUT);
 
 	init_Terminal();
-	task_run();
+	if (profile.isAutorunEnabled) {
+		task_run();
+	}
 }
 
 void loop()
@@ -118,7 +123,9 @@ void loop()
 		task_Temperature(10);
 		task_PID(50);
 		task_Controller(50);
-		task_Plot(20);
+		if (profile.isPlottingTaskEnabled) {
+			task_Plot(20);
+		}
 	}
 	task_Terminal(50);
 	task_Exec();
@@ -537,7 +544,12 @@ void command_show()
 	Serial.println(F("--------------------")); 
 	Serial.print(F("- setpointTemp : ")); 
 	Serial.println(profile.setpointTemp);
+	Serial.print(F("- isAutorunEnabled : ")); // = 0;
+	Serial.println(profile.isAutorunEnabled ? F("true"):F("false"));
+	Serial.print(F("- isPlottingTaskEnabled : ")); // = 0;
+	Serial.println(profile.isPlottingTaskEnabled ? F("true"):F("false"));
 
+	Serial.println();
 	Serial.print(F("- THERMISTER_PIN : ")); //  = 0
 	Serial.println(profile.THERMISTER_PIN);
 	Serial.print(F("- THERMISTER_REF_RESISTER : ")); // = 9960.0;
