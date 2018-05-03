@@ -34,8 +34,8 @@ struct profile_storage
 	#define STATIC_TIMER_INIT static unsigned long STATIC_TIMER_UPDATE		// Schedule Variable Declaration
 	#define STATIC_TIMER_CHECK (millis() >= timer)							// Schedule Checking
 
-	void task_run();
-	void task_stop();
+	bool task_run();
+	bool task_stop();
 	bool task_isRunning();
 
 	bool isControlTaskEnabled = false;
@@ -489,7 +489,7 @@ void command_stop()
 }
 
 
-void task_run()
+bool task_run() // TODO: check current status first
 {
 	isControlTaskEnabled = true;
 	init_Temperature();
@@ -497,13 +497,15 @@ void task_run()
 	init_Controller();
 	init_Plot();
 	init_Terminal();
+	return true;
 }
 
 
-void task_stop()
+bool task_stop() // TODO: check current status first
 {
 	isControlTaskEnabled = false;
 	setController(0);
+	return true;
 }
 
 
