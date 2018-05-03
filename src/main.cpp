@@ -39,6 +39,8 @@
 	#define CONTROLLER_INA_PIN 7
 	#define CONTROLLER_INB_PIN 8
 
+	bool isControllerTaskEnabled = false;
+
 	void initController();
 	bool setController(double percentage);
 #pragma endregion
@@ -67,6 +69,8 @@ void task_Exec();
 bool isMatch(char *p,  char *keyword);
 void command_help();
 void command_info();
+void command_run();
+void command_stop();
 
 void setup()
 {
@@ -79,8 +83,8 @@ void setup()
 void loop()
 {
 	task_Temperature(10);
-	//task_PID(50);
-	//task_Controller(50);
+	task_PID(50);
+	task_Controller(50);
 	//task_Plot(20);
 
 	task_Terminal(50);
@@ -125,14 +129,16 @@ void task_Controller(long duration)
 	static double percentage;
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
-		percentage = valPID;
-		if (percentage < 0) {
-			percentage = 0;
+		if (isControllerTaskEnabled) {
+			percentage = valPID;
+			if (percentage < 0) {
+				percentage = 0;
+			}
+			else if (percentage > 100) {
+				percentage = 100;
+			}
+			setController(percentage);
 		}
-		else if (percentage > 100) {
-			percentage = 100;
-		}
-		setController(percentage);
 
 		STATIC_TIMER_UPDATE;
 	}
@@ -233,6 +239,9 @@ void initController()
 	digitalWrite(CONTROLLER_INA_PIN, HIGH);
 	digitalWrite(CONTROLLER_INB_PIN, LOW);
 	analogWrite(CONTROLLER_PWM_PIN, 0);
+
+	isControllerTaskEnabled = false;
+	setController(0);
 }
 
 
@@ -326,10 +335,10 @@ void task_Exec()
 			command_info();
 		}
 		else if (isMatch(command, "run")) {
-			Serial.println(F("Run"));
+			command_run();
 		}
 		else if (isMatch(command, "stop")) {
-			Serial.println(F("Stop"));
+			command_stop();
 		}
 		else {
 			Serial.println("Unknown Command!. Try 'help'.");
@@ -370,11 +379,26 @@ void command_info()
 {
 	Serial.print(F("\n  System Infomation\n"));
 	Serial.print(F("   - Status        : "));
-	Serial.println();
+	Serial.println(isControllerTaskEnabled? "Running":"STOP");
 
 	Serial.print(F("   - Setpoint Temp.: "));
 	Serial.println(setpointTemp);
 
 	Serial.print(F("   - Current Temp. : "));
 	Serial.println(currentTemp);
+}
+
+void command_run()
+{
+	Serial.print(F("Task starting...\n"));
+	isControllerTaskEnabled = true;
+	command_info();
+}
+
+void command_stop()
+{
+	Serial.print(F("Task stopping...\n"));
+	isControllerTaskEnabled = false;
+	setController(0);
+	command_info();
 }
