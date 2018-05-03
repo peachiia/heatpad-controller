@@ -112,7 +112,7 @@ bool profile_load();
 void setup()
 {
 	pinMode(LED_BUILTIN, OUTPUT);
-
+	profile_load();
 	init_Terminal();
 	if (profile.isAutorunEnabled) {
 		task_run();
@@ -528,7 +528,7 @@ bool task_isRunning()
 void command_default()
 {
 	if (task_isRunning()) {
-		Serial.print(F("FAIL: Use 'stop' to stop control task first."));
+		Serial.print(F("ERROR: Use 'stop' to stop control task first."));
 	}
 	else {
 		Serial.print(F("Set Default to Current Profile... "));
@@ -545,86 +545,138 @@ void command_show()
 {
 	Serial.println(F("\nCurrent Profile")); 
 	Serial.println(F("--------------------")); 
-	Serial.print(F("- setpointTemp : ")); 
+	Serial.print(F("11 - setpointTemp : ")); 
 	Serial.println(profile.setpointTemp);
-	Serial.print(F("- isAutorunEnabled : ")); // = 0;
-	Serial.println(profile.isAutorunEnabled ? F("true"):F("false"));
-	Serial.print(F("- isPlottingTaskEnabled : ")); // = 0;
-	Serial.println(profile.isPlottingTaskEnabled ? F("true"):F("false"));
-
+	Serial.print(F("12 - isAutorunEnabled : ")); // = 0;
+	Serial.println(profile.isAutorunEnabled);
+	Serial.print(F("13 - isPlottingTaskEnabled : ")); // = 0;
+	Serial.println(profile.isPlottingTaskEnabled);
 	Serial.println();
 
-	Serial.print(F("- ADC_MAX : ")); // = 1023;
+	Serial.print(F("21 - ADC_MAX : ")); // = 1023;
 	Serial.println(profile.ADC_MAX);
-	Serial.print(F("- THERMISTER_PIN : ")); //  = 0
+	Serial.print(F("22 - THERMISTER_PIN : ")); //  = 0
 	Serial.println(profile.THERMISTER_PIN);
-	Serial.print(F("- THERMISTER_REF_RESISTER : ")); // = 9960.0;
+	Serial.print(F("23 - THERMISTER_REF_RESISTER : ")); // = 9960.0;
 	Serial.println(profile.THERMISTER_REF_RESISTER);
-	Serial.print(F("- THERMISTER_ROOM_RESISTANCE : ")); // = 10000;    
+	Serial.print(F("24 - THERMISTER_ROOM_RESISTANCE : ")); // = 10000;    
 	Serial.println(profile.THERMISTER_ROOM_RESISTANCE);
-	Serial.print(F("- THERMISTER_ROOM_TEMP : ")); // = 25;				
+	Serial.print(F("25 - THERMISTER_ROOM_TEMP : ")); // = 25;				
 	Serial.println(profile.THERMISTER_ROOM_TEMP);
-	Serial.print(F("- THERMISTER_COEF_B : ")); // = 2988.64;			
+	Serial.print(F("26 - THERMISTER_COEF_B : ")); // = 2988.64;			
 	Serial.println(profile.THERMISTER_COEF_B);
-	Serial.print(F("- DENOISE_ORDER: ")); // = 1;
+	Serial.println();
+
+	Serial.print(F("31 - DENOISE_ORDER: ")); // = 1;
 	Serial.println(profile.DENOISE_ORDER);
-	Serial.print(F("- DENOISE_DIFF_LIMIT : ")); // = 0.02;
+	Serial.print(F("32 - DENOISE_DIFF_LIMIT : ")); // = 0.02;
 	Serial.println(profile.DENOISE_DIFF_LIMIT);
 	
-	Serial.print(F("- CONTROLLER_PWM_MAX : ")); // = 255;
+	Serial.print(F("41 - CONTROLLER_PWM_MAX : ")); // = 255;
 	Serial.println(profile.CONTROLLER_PWM_MAX);
-	Serial.print(F("- CONTROLLER_PWM_PIN : ")); // = 6;
+	Serial.print(F("42 - CONTROLLER_PWM_PIN : ")); // = 6;
 	Serial.println(profile.CONTROLLER_PWM_PIN);
-	Serial.print(F("- CONTROLLER_INA_PIN : ")); // = 7;
+	Serial.print(F("43 - CONTROLLER_INA_PIN : ")); // = 7;
 	Serial.println(profile.CONTROLLER_INA_PIN);
-	Serial.print(F("- CONTROLLER_INB_PIN : ")); // = 8;
+	Serial.print(F("44 - CONTROLLER_INB_PIN : ")); // = 8;
 	Serial.println(profile.CONTROLLER_INB_PIN);
-	
-	Serial.print(F("- kP : ")); // = 500.0; 
+	Serial.println();
+
+	Serial.print(F("51 - kP : ")); // = 500.0; 
 	Serial.println(profile.kP);
-	Serial.print(F("- kI : ")); // = 0;
+	Serial.print(F("52 - kI : ")); // = 0;
 	Serial.println(profile.kI);
-	Serial.print(F("- kD : ")); // = 0;
+	Serial.print(F("53 - kD : ")); // = 0;
 	Serial.println(profile.kD);
 }
 
 
 void command_load()
 {
-	Serial.print(F("Loading Profile from Storage... "));
-	if (profile_load()) {
-		Serial.print(F("DONE\n"));
-		command_show();
+	if (task_isRunning()) {
+		Serial.print(F("ERROR: Use 'stop' to stop control task first."));
 	}
 	else {
-		Serial.print(F("ERROR!!\n"));
+		Serial.print(F("Loading Profile from Storage... "));
+		if (profile_load()) {
+			Serial.print(F("DONE\n"));
+			command_show();
+		}
+		else {
+			Serial.print(F("FAIL!!\n"));
+		}
 	}
 }
 
 
 void command_save()
 {
-	Serial.print(F("Saving Profile to storage... "));
-	if (profile_save()) {
-		Serial.print(F("DONE\n"));
-		command_show();
+	if (task_isRunning()) {
+		Serial.print(F("ERROR: Use 'stop' to stop control task first."));
 	}
 	else {
-		Serial.print(F("ERROR!!\n"));
+		Serial.print(F("Saving Profile to storage... "));
+		if (profile_save()) {
+			Serial.print(F("DONE\n"));
+			command_show();
+		}
+		else {
+			Serial.print(F("FAIL!!\n"));
+		}
 	}
 }
 
 
 void command_set()
 {
+	if (task_isRunning()) {
+		Serial.print(F("ERROR: Use 'stop' to stop control task first."));
+	}
+	else {
+		int key = 0;
+		double value = 0;
+		sscanf(command, "%*s%d%lf", &key);
+		if (key >= 10 && key <= 99 && commandLength >=8) {
+			value = atof(&command[7]);
+			switch (key) {
+				case 11: profile.setpointTemp = value; break;
+				case 12: profile.isAutorunEnabled = (((int)value) == 0? 0:1); break;
+				case 13: profile.isPlottingTaskEnabled = (((int)value) == 0? 0:1); break;
+				case 21: profile.ADC_MAX = value; break;
+				case 22: profile.THERMISTER_PIN = value; break;
+				case 23: profile.THERMISTER_REF_RESISTER = value; break;
+				case 24: profile.THERMISTER_ROOM_RESISTANCE = value; break;
+				case 25: profile.THERMISTER_ROOM_TEMP = value; break;
+				case 26: profile.THERMISTER_COEF_B = value; break;
+				case 31: profile.DENOISE_ORDER = value; break;
+				case 32: profile.DENOISE_DIFF_LIMIT = value; break;
+				case 41: profile.CONTROLLER_PWM_MAX = value; break;
+				case 42: profile.CONTROLLER_PWM_PIN = value; break;
+				case 43: profile.CONTROLLER_INA_PIN = value; break;
+				case 44: profile.CONTROLLER_INB_PIN = value; break;
+				case 51: profile.kP = value; break;
+				case 52: profile.kI = value; break;
+				case 53: profile.kD = value; break;
+				default: Serial.print(F("ERROR: Unknown key.")); return;			
+			}
+			Serial.print(F("DONE\n\n"));
+		}
+		else {
+			Serial.print(F("ERROR: Unknown key and value.")); 
+			return;	
+		}
 
+		command_show();
+	}
 }
+
 
 bool profile_load()
 {
 	EEPROM.get(0, profile);
 	return true;
 }
+
 
 bool profile_save()
 {
