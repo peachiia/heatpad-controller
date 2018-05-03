@@ -277,7 +277,7 @@ void task_Terminal(long duration)
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
 		if (flagTerminalResume) {
-			Serial.print(">> ");
+			Serial.print(F(">> "));
 			flagTerminalResume = false;
 		}					
 		while (Serial.available() > 0) // TODO: Watchdog Timer Required.
