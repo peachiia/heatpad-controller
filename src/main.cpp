@@ -57,28 +57,15 @@
 	double controlPWM = 0;
 #pragma endregion
 
-#pragma region MESSAGE
-	#define MESSAGE_HELP 	F("\n  Open Heat-Pad Controller Terminal\n" \
-								"    help        : show help message\n" \
-								"    info        : show info of system\n" \
-								"    status      : show current status\n" \
-								"    run         : start control loop\n" \
-								"    stop        : stop control loop\n" \
-								"    get         : get value of ALL KEY\n" \
-								"    get <k>     : get value of specific key\n" \
-								"    set <k> <v> : set value to specific key\n" \
-								"    hardreset   : restore to DEFAULT parameter\n" \
-							)
-
-#pragma endregion
-
 void task_Temperature(long duration);
 void task_PID(long duration);
 void task_Controller(long duration);
 void task_Plot(long duration);
 void task_Terminal(long duration);
 void task_Exec();
+
 bool isMatch(char *p,  char *keyword);
+void print_help();
 
 void setup()
 {
@@ -333,7 +320,7 @@ void task_Exec()
 		#endif
 
 		if (isMatch(command, "help")) {
-			Serial.println(MESSAGE_HELP);
+			print_help();
 		}
 		else if (isMatch(command, "info")) {
 			Serial.println(F("Info"));
@@ -366,4 +353,19 @@ bool isMatch(char *p, char *keyword)
 		}
 	}
 	return (i == len);
+}
+
+void print_help()
+{
+	Serial.print( F( "\n  Open Heat-Pad Controller Terminal\n" \
+						"    help        : show help message\n" \
+						"    info        : show info of system\n" \
+						"    status      : show current status\n" \
+						"    run         : start control loop\n" \
+						"    stop        : stop control loop\n" \
+						"    get         : get value of ALL KEY\n" \
+						"    get <k>     : get value of specific key\n" \
+						"    set <k> <v> : set value to specific key\n" \
+						"    hardreset   : restore to DEFAULT parameter\n" \
+					));
 }
