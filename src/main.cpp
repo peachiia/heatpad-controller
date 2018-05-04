@@ -446,23 +446,23 @@ bool isMatch(char *p, char *keyword)
 
 void command_help()
 {
-	Serial.print( F(  "\n  Open Heat-Pad Controller Terminal\n" \
-						"    help        : show help message\n" \
-						"    info        : show info of system\n" \
-						"    run         : start control loop\n" \
-						"    stop        : stop control loop\n" \
-						"    show        : show current profile\n" \
-						"    load        : load profile from Storage\n" \
-						"    save        : save profile to Storage\n" \
-						"    set <k> <v> : set value to specific profile key\n" \
-						"    default     : restore profile on RAM to DEFAULT\n" \
+	Serial.print( F(  "\r\n  Open Heat-Pad Controller Terminal\r\n" \
+						"    help        : show help message\r\n" \
+						"    info        : show info of system\r\n" \
+						"    run         : start control loop\r\n" \
+						"    stop        : stop control loop\r\n" \
+						"    show        : show current profile\r\n" \
+						"    load        : load profile from Storage\r\n" \
+						"    save        : save profile to Storage\r\n" \
+						"    set <k> <v> : set value to specific profile key\r\n" \
+						"    default     : restore profile on RAM to DEFAULT\r\n" \
 					));
 }
 
 
 void command_info()
 {
-	Serial.print(F("\n  System Infomation\n"));
+	Serial.print(F("\r\n  System Infomation\r\n"));
 	Serial.print(F("   - Status        : "));
 	Serial.println(task_isRunning()? "Running":"STOP");
 
@@ -481,10 +481,10 @@ void command_run()
 	Serial.print(F("Task starting... "));
 	if (!task_isRunning()) {
 		task_run();
-		Serial.print(F("DONE\n"));
+		Serial.print(F("DONE\r\n"));
 	}
 	else{
-		Serial.print(F("FAIL: already running\n"));
+		Serial.print(F("FAIL: already running\r\n"));
 	}
 	command_info();
 }
@@ -494,7 +494,7 @@ void command_stop()
 {
 	Serial.print(F("Task stopping... "));
 	task_stop();
-	Serial.print(F("DONE\n"));
+	Serial.print(F("DONE\r\n"));
 	command_info();
 }
 
@@ -534,7 +534,7 @@ void command_default()
 		Serial.print(F("Set Default to Current Profile... "));
 		struct profile_storage default_profile;
 		profile = default_profile;
-		Serial.print(F("DONE\n"));
+		Serial.print(F("DONE\r\n"));
 
 		command_show();
 	}
@@ -543,7 +543,7 @@ void command_default()
 
 void command_show()
 {
-	Serial.println(F("\nCurrent Profile")); 
+	Serial.println(F("\r\nCurrent Profile")); 
 	Serial.println(F("--------------------")); 
 	Serial.print(F("11 - setpointTemp : ")); 
 	Serial.println(profile.setpointTemp);
@@ -599,11 +599,11 @@ void command_load()
 	else {
 		Serial.print(F("Loading Profile from Storage... "));
 		if (profile_load()) {
-			Serial.print(F("DONE\n"));
+			Serial.print(F("DONE\r\n"));
 			command_show();
 		}
 		else {
-			Serial.print(F("FAIL!!\n"));
+			Serial.print(F("FAIL!!\r\n"));
 		}
 	}
 }
@@ -617,11 +617,11 @@ void command_save()
 	else {
 		Serial.print(F("Saving Profile to storage... "));
 		if (profile_save()) {
-			Serial.print(F("DONE\n"));
+			Serial.print(F("DONE\r\n"));
 			command_show();
 		}
 		else {
-			Serial.print(F("FAIL!!\n"));
+			Serial.print(F("FAIL!!\r\n"));
 		}
 	}
 }
@@ -659,7 +659,7 @@ void command_set()
 				case 53: profile.kD = value; break;
 				default: Serial.print(F("ERROR: Unknown key.")); return;			
 			}
-			Serial.print(F("DONE\n\n"));
+			Serial.print(F("DONE\r\n\r\n"));
 		}
 		else {
 			Serial.print(F("ERROR: Unknown key and value.")); 
