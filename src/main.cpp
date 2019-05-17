@@ -59,7 +59,11 @@ struct profile_storage
 #pragma endregion
 
 #pragma region CONTROLLER
-	void initController();
+	#define CONTROLLER_MINIMUM_START 5
+	void init_Controller();
+	void startController();
+	void stopController();
+	int getPwnFromPercentage(double percentage);
 	bool setController(double percentage);
 #pragma endregion
 
@@ -204,9 +208,24 @@ void init_Controller()
 	setController(0);
 }
 
+void startController()
+{
+	digitalWrite(profile.CONTROLLER_INA_PIN, HIGH);
+	digitalWrite(profile.CONTROLLER_INB_PIN, LOW);
+}
+
+void stopController()
+{
+	digitalWrite(profile.CONTROLLER_INA_PIN, LOW);
+	digitalWrite(profile.CONTROLLER_INB_PIN, LOW);
+
+	setController(0);
+}
+
 
 void task_Controller(long duration)
 {
+	static bool flagJustStop = true;
 	static double percentage;
 	STATIC_TIMER_INIT;
 	if (STATIC_TIMER_CHECK) {
@@ -217,8 +236,19 @@ void task_Controller(long duration)
 		else if (percentage > 100) {
 			percentage = 100;
 		}
-		setController(percentage);
-
+		
+		if (percentage > CONTROLLER_MINIMUM_START) {
+			if (flagJustStop){
+				startController();
+				flagJustStop = false;
+			}
+			setController(percentage);
+		}
+		else {
+			stopController();
+			flagJustStop = true;
+		}
+		
 		STATIC_TIMER_UPDATE;
 	}
 }
@@ -312,9 +342,14 @@ double getBetaCoef(double T1, double R1, double T2, double R2)
 }
 
 
+int getPwnFromPercentage(double percentage)
+{
+	return (int)(profile.CONTROLLER_PWM_MAX * (percentage/100));
+}
+
 bool setController(double percentage)
 {
-	int pwm = (int)(profile.CONTROLLER_PWM_MAX * (percentage/100));
+	static int pwm = getPwnFromPercentage(percentage);
 	#ifdef VERBOSE
 		Serial.print("setController: ");
 		Serial.print(percentage);
