@@ -201,9 +201,7 @@ void init_Controller()
 	pinMode(profile.CONTROLLER_INA_PIN, OUTPUT);
 	pinMode(profile.CONTROLLER_INB_PIN, OUTPUT);
 
-	digitalWrite(profile.CONTROLLER_INA_PIN, HIGH);
-	digitalWrite(profile.CONTROLLER_INB_PIN, LOW);
-	analogWrite(profile.CONTROLLER_PWM_PIN, 0);
+	startController();
 
 	setController(0);
 }
