@@ -9,3 +9,5 @@
 *.ipch
 
 \.vscode/
+
+.pio/
